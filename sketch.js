@@ -23,7 +23,7 @@ function preload(){
 
 function setup() {
 
-  createCanvas(800, 800);
+  createCanvas(640, 800);
     
   video = createCapture(VIDEO);
   video.size(640, 480);
@@ -130,10 +130,9 @@ function switchCrown(){
 
 function placeCrown(num){
     
-            push();
-  translate(video.width, 0)
-  scale(-1.0,1.0)
-       // placeCrown();
+   push();
+  translate(video.width, 0);
+  scale(-1.0,1.0);
   
     let allpoints;
     
