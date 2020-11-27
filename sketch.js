@@ -19,7 +19,7 @@ function preload(){
 function setup() {
 
   createCanvas(800, 800);
-  background('#FCC8D2');
+    
   video = createCapture(VIDEO);
   video.size(640, 480);
 
@@ -31,11 +31,7 @@ function setup() {
     predictions = results;
   });
 
-  //  facemesh.load();
-    
-
-  // Hide the video element, and just show the canvas
-  video.hide();
+    video.hide();
     
     button = new Clickable();
     button.locate(200,550);
@@ -69,6 +65,7 @@ function modelReady() {
 
 function draw() {
 
+  background('#FCC8D2');
   loadingScreen();
     
   push();
