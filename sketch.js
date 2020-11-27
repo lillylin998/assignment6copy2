@@ -11,8 +11,13 @@ let timer = 0;
 
 
 function preload(){
-    crowns[0] = loadImage('crown1.png');
-    crowns[1] = loadImage('crown2.png');
+    
+    for(let i = 0; i<5; i++){
+        crowns[i] = loadImage('crown'+(i+1)+'.png');
+    }
+    print(crowns);
+   // crowns[0] = loadImage('crown1.png');
+   // crowns[1] = loadImage('crown2.png');
     font = loadFont('sweetpurple.otf');
 }
 
@@ -96,7 +101,7 @@ function loadingScreen(){
     textFont(font);
     textSize(40)
     if(ready === false){
-        print(millis())
+        //print(millis())
         
         if(millis()-timer<300){
             text('Loading.', 320,240);
