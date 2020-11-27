@@ -1,16 +1,27 @@
 let facemesh;
 let video;
 let predictions = [];
-let keypoints = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,179,378,400,377,152,148];
-let verticesX = [];
-let verticesY = [];
+let crowns = [];
+let ready = false;
+let button;
+let pressed = false;
+let crownNo = -1;
+let font;
+let timer = 0;
 
+
+function preload(){
+    crowns[0] = loadImage('crown1.png');
+    crowns[1] = loadImage('crown2.png');
+    font = loadFont('sweetpurple.otf');
+}
 
 function setup() {
 
-  createCanvas(640, 480);
+  createCanvas(800, 800);
+  background('#FCC8D2');
   video = createCapture(VIDEO);
-  video.size(width, height);
+  video.size(640, 480);
 
   facemesh = ml5.facemesh(video, modelReady);
 
@@ -25,105 +36,138 @@ function setup() {
 
   // Hide the video element, and just show the canvas
   video.hide();
+    
+    button = new Clickable();
+    button.locate(200,550);
+    button.resize(200,50);
+    button.strokeWeight = 2;
+    button.stroke = "#D3A62A"
+    button.text = "Press to Start!";
+    button.textFont = font;
+    button.textSize = 30;
+    button.color = "#F4DB95"
+    button.onPress = function(){
+        button.color = "#D3A62A";
+        pressed = true;
+        crownNo += 1;
+          if(crowns[crownNo] == undefined){
+        crownNo = 0;
+    }
+    button.onRelease = function(){
+        button.color = "#F4DB95"
+    }
+    }
+    
+
+    
 }
 
 function modelReady() {
   console.log("Model ready!");
+  ready = true;
 }
 
 function draw() {
-  translate(video.width, 0)
-  scale(-1.0,1.0)
-  image(video, 0, 0, width, height);
+
+  loadingScreen();
     
   push();
-  drawSunflower();
-  pop();
+  translate(video.width, 0)
+  scale(-1.0,1.0)
+  image(video, 0, 0, 640, 480);
+  pop();  
     
-  //  drawKeypoints();
+    
+    
+    if(ready){
+
+        button.draw();
+        textFont(font);
+        textSize(64);
+        text('the fairest of them all',300,500);
+        if(pressed){
+           placeCrown(crownNo);
+            button.text = "Press Me";
+        }
+        
+    }
 }
 
 
-function drawSunflower(){
+function loadingScreen(){
+     
+    textFont(font);
+    textSize(40)
+    if(ready === false){
+        print(millis())
+        
+        if(millis()-timer<300){
+            text('Loading.', 320,240);
+            
+        }
+        if(millis()-timer>600){
+            text('Loading. .', 320,240);
+            
+        } 
+        if(millis()-timer>900){
+            text('Loading. . .', 320,240);
+            timer = millis();
+            
+        }
+    } 
     
-   let allpoints;
+}
+
+function switchCrown(){
+    crownNo += 1;
+    if(crowns[crownNo] == undefined){
+        crownNo = 0;
+    }
+    return crownNo;
+}
+
+function placeCrown(num){
+    
+            push();
+  translate(video.width, 0)
+  scale(-1.0,1.0)
+       // placeCrown();
+  
+    let allpoints;
     
     for(let i = 0; i < predictions.length; i++){
         allpoints = predictions[i].scaledMesh;
-        print(allpoints);
-        for(let j = 0; j < keypoints.length; j++){
-            for(let k = 0; k < 2; k++){
-                let index = keypoints[j];
-                //print(index)
-                verticesX[j]= allpoints[index][0];
-                verticesY[j]= allpoints[index][1];
-                print(verticesX, verticesY)
-            }
+        let leftTempleX = allpoints[54][0];
+        let leftTempleY = allpoints[54][1];
+        let rightTempleX = allpoints[284][0];
+        let rightTempleY = allpoints[284][1];
+        
+        //ellipse(leftTempleX, leftTempleY,20);
+        let crownWidth = dist(leftTempleX,leftTempleY,rightTempleX, rightTempleY);
+        
+       // image(crowns[1],leftTempleX-crownWidth*1.5/8,leftTempleY-crownWidth, crownWidth*1.5, crownWidth);
+        
+        if(rightTempleY-leftTempleY > 20){
+            let a = atan2(rightTempleY-leftTempleY,rightTempleX-leftTempleX);
+            //print(a);
+            push();
+            translate(leftTempleX-crownWidth*1.5/8,leftTempleY-crownWidth);
+            rotate(a);
+            image(crowns[num],0,0,crownWidth*1.5,crownWidth);
+            pop();
+        } else if(rightTempleY-leftTempleY <-20){
+             let a = atan2(rightTempleY-leftTempleY,rightTempleX-leftTempleX);     
+            push();
+            translate(leftTempleX-crownWidth*1.5/8,leftTempleY-crownWidth);
+            rotate(a);
+            image(crowns[num],0,0,crownWidth*1.5,crownWidth);
+            pop();
+                  }else{
+             image(crowns[num],leftTempleX-crownWidth*1.5/8,leftTempleY-crownWidth, crownWidth*1.5, crownWidth);
         }
-        break;
-    }
-   // print(verticesY);
-    let count=0;
-   for(let i = 0; i < predictions.length; i++){
-       allpoints = predictions[i].scaledMesh;
-   // print(allpoints);
-   for(let i=0; i<keypoints.length/4;i++){
-           let distFace = dist(allpoints[10][0],allpoints[10][1],allpoints[152][0],allpoints[152][1]);
-  let px = verticesX[count*4];
-  let py = verticesY[count*4];
-  let qx = verticesX[count+3];
-  let qy = verticesY[count+3];
-  let a = atan2(qy-py,qx-px);
-  let deltaY = py-qy;
-  push()
-  translate(px,py);
-  if(deltaY >0){
-     rotate(-a)
-  }else{
-     rotate(a);
-  }
-      // print(a);
-   
-  beginShape()
-  
-  let distPetal = dist(px,py,qx,qy);
-  //distFace = 200;
-  curveVertex(0,0);
-  curveVertex(0,0);
-  curveVertex(0+0.1*distPetal,0-distFace/5);
-  curveVertex(0+distPetal/2,0-distFace/3);
-  curveVertex(0+0.9*distPetal,0-distFace/5);
-  curveVertex(0+distPetal,0);
-  curveVertex(0+distPetal,0);
-  endShape()
-  pop();
-  //  print("hello");
-       
-//       fill(255);
-//        ellipse(px,py,20);
-//       fill(0)
-//       ellipse(qx,qy,20);
-//       
-//   print(px,py)
-       count+=1;
-       print(count);
-   }
-       
-    }
+        
     
     }
-
-function drawKeypoints() {
-  for (let i = 0; i < predictions.length; i += 1) {
-    const keypoints = predictions[i].scaledMesh;
-      print(keypoints)
-    // Draw facial keypoints.
-    for (let j = 0; j < keypoints.length; j += 1) {
-      const [x, y] = keypoints[j];
-
-      fill(0, 255, 0);
-      ellipse(x, y, 5, 5);
-    }
-  }
+    
+   pop(); 
 }
-
